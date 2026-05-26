@@ -2,8 +2,7 @@ package("gtsam")
     set_homepage("https://github.com/borglab/gtsam")
     set_description("Georgia Tech Smoothing and Mapping library - factor graph optimization for SLAM and SFM")
 
-    add_urls("https://github.com/borglab/gtsam.git",
-             "https://github.com/borglab/gtsam/archive/refs/tags/$(version).tar.gz")
+    add_urls("https://github.com/borglab/gtsam.git")
 
     add_versions("4.2.0", "4f66a491ffc83cf092d0d818b11dc35135521612")
     add_versions("4.2.1", "0a070c2700fcf6fc7b960da8d734bbd02043c89a")
