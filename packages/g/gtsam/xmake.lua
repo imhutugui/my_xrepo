@@ -2,7 +2,8 @@ package("gtsam")
     set_homepage("https://github.com/borglab/gtsam")
     set_description("Georgia Tech Smoothing and Mapping library - factor graph optimization for SLAM and SFM")
 
-    add_urls("https://github.com/borglab/gtsam.git")
+    add_urls("https://github.com/borglab/gtsam.git",
+             "https://github.com/borglab/gtsam/archive/refs/tags/$(version).tar.gz")
 
     add_versions("4.2.0", "4f66a491ffc83cf092d0d818b11dc35135521612")
     add_versions("4.2.1", "0a070c2700fcf6fc7b960da8d734bbd02043c89a")
@@ -13,7 +14,7 @@ package("gtsam")
     add_deps("boost",
              {configs = {serialization = true, filesystem = true, thread = true,
                          program_options = true, date_time = true, timer = true,
-                         chrono = true, regex = true}})
+                         chrono = true, regex = true, math = true}})
 
     on_load(function (package)
         -- TBB is optional; skip on Windows due to build complexity
@@ -34,6 +35,8 @@ package("gtsam")
         end
         if package:is_plat("windows") then
             table.insert(configs, "-DGTSAM_WITH_TBB=OFF")
+            -- MSVC does not support -fPIC; disable CMAKE_POSITION_INDEPENDENT_CODE
+            table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=OFF")
         end
         if package:version():ge("4.3") then
             table.insert(configs, "-DGTSAM_USE_BOOST_FEATURES=ON")
