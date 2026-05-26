@@ -44,6 +44,11 @@ package("gtsam_points")
     end)
 
     on_test(function (package)
-        assert(package:has_cxx_include("gtsam_points/types/point_cloud.hpp"))
+        assert(package:check_cxxsnippets({test = [[
+            #include <gtsam_points/types/point_cloud.hpp>
+            void test() {
+                gtsam_points::PointCloud cloud;
+            }
+        ]]}))
     end)
 package_end()

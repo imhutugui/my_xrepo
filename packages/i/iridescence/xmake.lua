@@ -31,6 +31,11 @@ package("iridescence")
     end)
 
     on_test(function (package)
-        assert(package:has_cxxfunc("glk::Colormap::create", {includes = {"glk/colormap.hpp"}}))
+        assert(package:check_cxxsnippets({test = [[
+            #include <glk/colormap.hpp>
+            void test() {
+                auto cmap = glk::Colormap::create(glk::Colormap::TURBO);
+            }
+        ]]}))
     end)
 package_end()
