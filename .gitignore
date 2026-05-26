@@ -1,4 +1,7 @@
-```
-# Build system
-xmake.lua
-```
+test_xmake/
+.codegraph/
+.vscode/
+.vs/
+.cursor/
+.DS_Store
+*.log
