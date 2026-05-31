@@ -8,7 +8,9 @@ package("gtsam")
     add_versions("4.2.1", "0a070c2700fcf6fc7b960da8d734bbd02043c89a")
 
     add_deps("cmake", "eigen 3.4.0")
-    add_deps("boost 1.88.0", {configs = {cmake = false, all = true, graph = true}})
+    add_deps("boost", {configs = {serialization = true, filesystem = true, thread = true,
+                                 program_options = true, date_time = true, timer = true,
+                                 chrono = true, graph = true}})
 
     on_load(function (package)
         -- TBB is optional; skip on Windows due to build complexity
@@ -19,7 +21,7 @@ package("gtsam")
 
     on_install(function (package)
         local configs = {"-DGTSAM_BUILD_TESTS=OFF", "-DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF",
-                         "-DGTSAM_BUILD_UNSTABLE=ON", "-DGTSAM_INSTALL_MATLAB_TOOLBOX=OFF",
+                         "-DGTSAM_BUILD_UNSTABLE=OFF", "-DGTSAM_INSTALL_MATLAB_TOOLBOX=OFF",
                          "-DGTSAM_BUILD_PYTHON=OFF",
                          "-DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF"}
         if package:config("shared") then
