@@ -1,0 +1,14 @@
+{
+    gtsam = {
+        __enabled = false,
+        __requirestr = "gtsam 4.2.1"
+    },
+    iridescence = {
+        __enabled = false,
+        __requirestr = "iridescence 1.0.1"
+    },
+    gtsam_points = {
+        __enabled = false,
+        __requirestr = "gtsam_points 1.2.1"
+    }
+}

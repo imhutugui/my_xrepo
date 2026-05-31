@@ -1,0 +1,12 @@
+{
+    packages = {
+        [[D:\ProgramData\.xmake\packages\n\ninja\v1.13.1\fd5a0995dca64146a4f4c4dbff879aad]],
+        [[D:\ProgramData\.xmake\packages\e\eigen\5.0.1\60cb40bd086c4c96b9551ce6ccff0e36]],
+        [[D:\ProgramData\.xmake\packages\g\glfw\3.4\d59f6dd71e7647cc95d2c1d35e51a39a]],
+        [[D:\ProgramData\.xmake\packages\g\glm\1.0.3\be4858b18f1c4ec49107db1df2647382]],
+        [[D:\ProgramData\.xmake\packages\z\zlib\v1.3.2\1087d98a25354760941affad70a541d9]],
+        [[D:\ProgramData\.xmake\packages\l\libpng\v1.6.58\37ab6731ecf24488b36c89b7b5ce5eab]],
+        [[D:\ProgramData\.xmake\packages\n\nasm\2.16.03\a21bbd6e91e3451bb2fbb65664f020c8]],
+        [[D:\ProgramData\.xmake\packages\l\libjpeg-turbo\3.1.4+1\c4e2d63706534444b2b686041f55d3d6]]
+    }
+}

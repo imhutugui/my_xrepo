@@ -1,0 +1,10 @@
+{
+    mtimes = {
+        ["xmake.lua"] = 1780160429
+    },
+    options = {
+        mode = "release",
+        pkg_searchdirs = [[E:\source\imhutugui\my_xrepo]]
+    },
+    recheck = false
+}

@@ -1,0 +1,192 @@
+{
+    find_program_fetch_package_xmake = {
+        cmake = false,
+        nasm = false,
+        ninja = false
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolcc = {
+        ["cl.exe"] = [[D:\Programs\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX64\x64\cl.exe]]
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolld = {
+        ["link.exe"] = [[D:\Programs\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX64\x64\link.exe]]
+    },
+    ["detect.sdks.find_vcpkgdir"] = [[E:\vcpkg]],
+    ["detect.sdks.find_dotnet"] = {
+        dotnet = {
+            sdkdir = [[C:\Program Files\dotnet\sdk\10.0.300]],
+            runtimes = {
+                {
+                    version = "3.1.19",
+                    name = "Microsoft.AspNetCore.App"
+                },
+                {
+                    version = "5.0.4",
+                    name = "Microsoft.AspNetCore.App"
+                },
+                {
+                    version = "10.0.8",
+                    name = "Microsoft.AspNetCore.App"
+                },
+                {
+                    version = "3.1.19",
+                    name = "Microsoft.NETCore.App"
+                },
+                {
+                    version = "5.0.4",
+                    name = "Microsoft.NETCore.App"
+                },
+                {
+                    version = "10.0.8",
+                    name = "Microsoft.NETCore.App"
+                },
+                {
+                    version = "5.0.4",
+                    name = "Microsoft.WindowsDesktop.App"
+                },
+                {
+                    version = "10.0.8",
+                    name = "Microsoft.WindowsDesktop.App"
+                }
+            },
+            version = "10.0.300",
+            sdkver = "10.0.300",
+            bindir = [[C:\Program Files\dotnet]],
+            sdks = {
+                {
+                    version = "10.0.300",
+                    directory = [[C:\Program Files\dotnet\sdk\10.0.300]]
+                }
+            }
+        }
+    },
+    find_programver_fetch_package_system = {
+        ["C:\\Program Files\\CMake\\bin\\cmake"] = "3.28.3"
+    },
+    find_program_msvc_arch_x64_plat_windows_checktoolcxx = {
+        ["cl.exe"] = [[D:\Programs\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX64\x64\cl.exe]]
+    },
+    find_program_fetch_package_system = {
+        cmake = [[C:\Program Files\CMake\bin\cmake]]
+    },
+    find_package_windows_x64_fetch_package_system = {
+        ["gtsam_1ea4a96ea21645628be61a90a00f1d0b_release_4.2.1_external"] = false,
+        gtsam_e9b13f4872bf4d3d92633d506ca11306_release_external = false,
+        ["iridescence_15ec44e5c6374adbadc98f9355dff101_release_1.0.1_external"] = false,
+        ["gtsam_points_e6063b9662c24c9086bfcbd2ac10b284_release_1.2.1_external"] = false,
+        ["boost_83428d5d100b4484a167f8068c13da2c_release_1.90.0_external"] = false
+    },
+    find_programver = {
+        ["C:\\Program Files\\dotnet\\dotnet.exe"] = "10.0.300",
+        ["C:\\Users\\wwb24\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"] = "3.12.10"
+    },
+    find_program = {
+        ["7z"] = [[D:\Programs\xmake\winenv\bin\7z]],
+        zig = false,
+        gzip = false,
+        nim = false,
+        curl = [[D:\Programs\xmake\winenv\bin\curl]],
+        git = [[C:\Program Files\Git\cmd\git.exe]],
+        ["cl.exe"] = [[D:\Programs\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX64\x64\cl.exe]],
+        python3 = [[C:\Users\wwb24\AppData\Local\Programs\Python\Python312\python.exe]],
+        ["vcpkg.exe"] = [[E:\vcpkg\vcpkg.exe]],
+        dotnet = [[C:\Program Files\dotnet\dotnet.exe]]
+    },
+    find_package_windows_x64_fetch_package_xmake = {
+        ["xmake::eigen_60cb40bd086c4c96b9551ce6ccff0e36_release_5.0.1_external"] = {
+            license = "MPL-2.0",
+            version = "5.0.1",
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\e\eigen\5.0.1\60cb40bd086c4c96b9551ce6ccff0e36\include]],
+                [[D:\ProgramData\.xmake\packages\e\eigen\5.0.1\60cb40bd086c4c96b9551ce6ccff0e36\include\eigen3]]
+            }
+        },
+        ["xmake::zlib_1087d98a25354760941affad70a541d9_release_v1.3.2_external"] = {
+            linkdirs = {
+                [[D:\ProgramData\.xmake\packages\z\zlib\v1.3.2\1087d98a25354760941affad70a541d9\lib]]
+            },
+            version = "v1.3.2",
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\z\zlib\v1.3.2\1087d98a25354760941affad70a541d9\include]]
+            },
+            static = true,
+            license = "zlib",
+            libfiles = {
+                [[D:\ProgramData\.xmake\packages\z\zlib\v1.3.2\1087d98a25354760941affad70a541d9\lib\zlib.lib]]
+            },
+            links = {
+                "zlib"
+            }
+        },
+        ["xmake::glm_be4858b18f1c4ec49107db1df2647382_release_1.0.3_external"] = {
+            license = "MIT",
+            version = "1.0.3",
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\g\glm\1.0.3\be4858b18f1c4ec49107db1df2647382\include]]
+            }
+        },
+        ["xmake::gtsam_e9b13f4872bf4d3d92633d506ca11306_release_4.3a1_external"] = false,
+        ["xmake::gtsam_points_e6063b9662c24c9086bfcbd2ac10b284_release_1.2.1_external"] = false,
+        ["xmake::boost_83428d5d100b4484a167f8068c13da2c_release_1.90.0_external"] = false,
+        ["xmake::iridescence_15ec44e5c6374adbadc98f9355dff101_release_1.0.1_external"] = false,
+        ["xmake::glfw_d59f6dd71e7647cc95d2c1d35e51a39a_release_3.4_external"] = {
+            syslinks = {
+                "user32",
+                "shell32",
+                "gdi32"
+            },
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\g\glfw\3.4\d59f6dd71e7647cc95d2c1d35e51a39a\include]]
+            },
+            libfiles = {
+                [[D:\ProgramData\.xmake\packages\g\glfw\3.4\d59f6dd71e7647cc95d2c1d35e51a39a\lib\glfw3.lib]]
+            },
+            linkdirs = {
+                [[D:\ProgramData\.xmake\packages\g\glfw\3.4\d59f6dd71e7647cc95d2c1d35e51a39a\lib]]
+            },
+            version = "3.4",
+            static = true,
+            defines = "GLFW_INCLUDE_NONE",
+            license = "zlib",
+            links = {
+                "glfw3"
+            }
+        },
+        ["xmake::libjpeg-turbo_c4e2d63706534444b2b686041f55d3d6_release_3.1.4+1_external"] = {
+            linkdirs = {
+                [[D:\ProgramData\.xmake\packages\l\libjpeg-turbo\3.1.4+1\c4e2d63706534444b2b686041f55d3d6\lib]]
+            },
+            version = "3.1.4+1",
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\l\libjpeg-turbo\3.1.4+1\c4e2d63706534444b2b686041f55d3d6\include]]
+            },
+            static = true,
+            license = "BSD-3-Clause",
+            libfiles = {
+                [[D:\ProgramData\.xmake\packages\l\libjpeg-turbo\3.1.4+1\c4e2d63706534444b2b686041f55d3d6\lib\jpeg-static.lib]],
+                [[D:\ProgramData\.xmake\packages\l\libjpeg-turbo\3.1.4+1\c4e2d63706534444b2b686041f55d3d6\lib\turbojpeg-static.lib]]
+            },
+            links = {
+                "jpeg-static",
+                "turbojpeg-static"
+            }
+        },
+        ["xmake::gtsam_1ea4a96ea21645628be61a90a00f1d0b_release_4.2.1_external"] = false,
+        ["xmake::libpng_37ab6731ecf24488b36c89b7b5ce5eab_release_v1.6.58_external"] = {
+            linkdirs = {
+                [[D:\ProgramData\.xmake\packages\l\libpng\v1.6.58\37ab6731ecf24488b36c89b7b5ce5eab\lib]]
+            },
+            version = "v1.6.58",
+            sysincludedirs = {
+                [[D:\ProgramData\.xmake\packages\l\libpng\v1.6.58\37ab6731ecf24488b36c89b7b5ce5eab\include]]
+            },
+            static = true,
+            license = "libpng-2.0",
+            libfiles = {
+                [[D:\ProgramData\.xmake\packages\l\libpng\v1.6.58\37ab6731ecf24488b36c89b7b5ce5eab\lib\png.lib]]
+            },
+            links = {
+                "png"
+            }
+        }
+    }
+}

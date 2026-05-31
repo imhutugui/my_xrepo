@@ -5,7 +5,7 @@ package("iridescence")
 
     add_urls("https://github.com/koide3/iridescence.git")
 
-    add_versions("1.0.1", "c4c31b68b93bb9c25eb3e3141c0d2412fafb90c7")
+    add_versions("1.0.1", "b4e99f223f81f30a7e1b206eb2edf912af28e7e2")
 
     add_deps("cmake", "opengl", "glfw", "glm", "eigen")
     add_deps("libpng", "libjpeg-turbo")
@@ -26,6 +26,13 @@ package("iridescence")
         end
         if package:is_plat("windows") then
             table.insert(configs, "-DCMAKE_CXX_FLAGS=/DNOMINMAX /D_USE_MATH_DEFINES /source-charset:utf-8")
+        end
+        -- Force glm_FOUND so iridescence skips FetchContent download
+        local glm = package:dep("glm")
+        if glm then
+            table.insert(configs, "-Dglm_DIR=" .. glm:installdir())
+            table.insert(configs, "-DGLM_DIR=" .. glm:installdir())
+            table.insert(configs, "-Dglm_FOUND=ON")
         end
         import("package.tools.cmake").install(package, configs)
     end)

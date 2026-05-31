@@ -34,3 +34,4 @@ package("rosbag")
         result.libfiles = path.join(package:installdir(libfiledir), "rosbag.dll")
         return result
     end)
+package_end()

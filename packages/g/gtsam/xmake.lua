@@ -6,14 +6,9 @@ package("gtsam")
 
     add_versions("4.2.0", "4f66a491ffc83cf092d0d818b11dc35135521612")
     add_versions("4.2.1", "0a070c2700fcf6fc7b960da8d734bbd02043c89a")
-    add_versions("4.3a0", "3ad4b4c3cb28394c9597f48fa02dad361c8450e3")
-    add_versions("4.3a1", "2f3e56c0ddbd3a1aa54ed043643b553d26a069f6")
 
-    add_deps("cmake", "eigen")
-    add_deps("boost",
-             {configs = {serialization = true, filesystem = true, thread = true,
-                         program_options = true, date_time = true, timer = true,
-                         chrono = true, regex = true, math = true}})
+    add_deps("cmake", "eigen 3.4.0")
+    add_deps("boost 1.88.0", {configs = {cmake = false, all = true, graph = true}})
 
     on_load(function (package)
         -- TBB is optional; skip on Windows due to build complexity
@@ -36,10 +31,6 @@ package("gtsam")
             table.insert(configs, "-DGTSAM_WITH_TBB=OFF")
             -- MSVC does not support -fPIC; disable CMAKE_POSITION_INDEPENDENT_CODE
             table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=OFF")
-        end
-        if package:version():ge("4.3") then
-            table.insert(configs, "-DGTSAM_USE_BOOST_FEATURES=ON")
-            table.insert(configs, "-DGTSAM_ENABLE_BOOST_SERIALIZATION=ON")
         end
         import("package.tools.cmake").install(package, configs)
     end)
