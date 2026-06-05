@@ -8,7 +8,7 @@ package("gtsam_points")
     add_versions("1.2.1", "620ad2786833601c81453eb7ad09a24d4331063a")
 
     add_deps("cmake", "gtsam 4.2.1", "eigen")
-    add_deps("boost", {configs = {all = true}})
+    add_deps("boost", {configs = {graph = true, filesystem = true}})
 
     on_load(function (package)
         -- TBB is optional and not commonly available on Windows
@@ -30,12 +30,16 @@ package("gtsam_points")
             table.insert(configs, "-DBUILD_SHARED_LIBS=ON")
         else
             table.insert(configs, "-DBUILD_SHARED_LIBS=OFF")
-            table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
+            if not package:is_plat("windows") then
+                table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
+            end
         end
         if package:is_plat("windows") then
             -- MSVC has limited OpenMP support; disable to avoid build issues
             table.insert(configs, "-DBUILD_WITH_TBB=OFF")
             table.insert(configs, "-DBUILD_WITH_OPENMP=OFF")
+            -- MSVC does not support -fPIC
+            table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=OFF")
         else
             table.insert(configs, "-DBUILD_WITH_TBB=ON")
             table.insert(configs, "-DBUILD_WITH_OPENMP=ON")

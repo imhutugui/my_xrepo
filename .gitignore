@@ -1,7 +1,9 @@
 test_xmake/
+test_gtsam_only/
 .codegraph/
 .vscode/
 .vs/
 .cursor/
+.codegraph/
 .DS_Store
 *.log

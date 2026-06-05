@@ -16,7 +16,6 @@ package("iridescence")
             "-DBUILD_PYTHON_BINDINGS=OFF",
             "-DBUILD_EXT_TESTS=OFF",
             "-DBUILD_WITH_MARCH_NATIVE=OFF",
-            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
             "-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON",
         }
         if package:config("shared") then
@@ -26,15 +25,44 @@ package("iridescence")
         end
         if package:is_plat("windows") then
             table.insert(configs, "-DCMAKE_CXX_FLAGS=/DNOMINMAX /D_USE_MATH_DEFINES /source-charset:utf-8")
+        else
+            table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
         end
-        -- Force glm_FOUND so iridescence skips FetchContent download
+
+        -- Prevent FetchContent downloads by pre-setting *_FOUND variables
+        -- iridescence's CMakeLists.txt checks: glm_FOUND, glfw3_FOUND, Eigen3_FOUND
+        -- If any is not found, it downloads from GitHub (which is unreliable in CN)
         local glm = package:dep("glm")
         if glm then
-            table.insert(configs, "-Dglm_DIR=" .. glm:installdir())
-            table.insert(configs, "-DGLM_DIR=" .. glm:installdir())
+            table.insert(configs, "-DGLM_ROOT_DIR=" .. glm:installdir())
             table.insert(configs, "-Dglm_FOUND=ON")
+            -- Also create glm::glm imported target that iridescence links against
+            table.insert(configs, "-DGLM_INCLUDE_DIR=" .. path.join(glm:installdir(), "include"))
         end
+        local glfw = package:dep("glfw")
+        if glfw then
+            table.insert(configs, "-Dglfw3_FOUND=ON")
+        end
+        local eigen = package:dep("eigen")
+        if eigen then
+            table.insert(configs, "-DEigen3_FOUND=ON")
+        end
+
         import("package.tools.cmake").install(package, configs)
+
+        -- iridescence installs headers under include/iridescence/ (e.g. include/iridescence/glk/)
+        -- Move them up so #include <glk/...> resolves correctly
+        local inc_irid = path.join(package:installdir(), "include", "iridescence")
+        if os.isdir(inc_irid) then
+            local inc_dir = path.join(package:installdir(), "include")
+            for _, f in ipairs(os.files(path.join(inc_irid, "*"))) do
+                os.mv(f, path.join(inc_dir, path.filename(f)))
+            end
+            for _, d in ipairs(os.dirs(path.join(inc_irid, "*"))) do
+                os.mv(d, path.join(inc_dir, path.filename(d)))
+            end
+            os.rmdir(inc_irid)
+        end
     end)
 
     on_test(function (package)
