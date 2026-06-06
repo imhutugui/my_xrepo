@@ -16,6 +16,12 @@ package("iridescence")
             os.vrunv("git", {"submodule", "update", "--init", "--recursive"}, {curdir = sourcedir})
         end
 
+        -- Remove .git to prevent xmake/cmake from resetting files
+        local gitdir = path.join(sourcedir, ".git")
+        if os.isdir(gitdir) then
+            os.rm("-r", gitdir)
+        end
+
         -- Patch 1: CMakeLists.txt - ensure glm::glm target is created
         local cmakelists = path.join(sourcedir, "CMakeLists.txt")
         if os.isfile(cmakelists) then
@@ -35,7 +41,6 @@ package("iridescence")
         end
 
         -- Patch 2: implot_items.cpp - fix ImGui 1.89 compatibility
-        -- AddConcavePolyFilled was added in ImGui 1.90, replace with AddConvexPolyFilled
         local implot_items = path.join(sourcedir, "thirdparty", "implot", "implot_items.cpp")
         if os.isfile(implot_items) then
             local im = io.readfile(implot_items)
@@ -80,7 +85,7 @@ package("iridescence")
 
         import("package.tools.cmake").install(package, configs)
 
-        -- Move headers from include/iridescence/ to include/
+        -- Move headers
         local inc_irid = path.join(package:installdir(), "include", "iridescence")
         if os.isdir(inc_irid) then
             local inc_dir = path.join(package:installdir(), "include")
