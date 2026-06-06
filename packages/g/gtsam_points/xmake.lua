@@ -31,6 +31,25 @@ package("gtsam_points")
             end
         end
 
+        -- MSVC: M_PI is not defined by <cmath>
+        -- Add M_PI definition to region_growing.hpp and ransac.hpp
+        local rg_hpp = path.join(sourcedir, "include", "gtsam_points", "segmentation", "region_growing.hpp")
+        if os.isfile(rg_hpp) then
+            local content = io.readfile(rg_hpp)
+            if content and not content:find("#include <cmath>") then
+                content = content:gsub("#include <cmath>", "%1\n#include <limits>\n#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif")
+                io.writefile(rg_hpp, content)
+            end
+        end
+        local ransac_hpp = path.join(sourcedir, "include", "gtsam_points", "registration", "ransac.hpp")
+        if os.isfile(ransac_hpp) then
+            local content = io.readfile(ransac_hpp)
+            if content and not content:find("M_PI") then
+                content = content:gsub("(#include <cmath>)", "%1\n#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif")
+                io.writefile(ransac_hpp, content)
+            end
+        end
+
         local configs = {
             "-DBUILD_TESTS=OFF",
             "-DBUILD_DEMO=OFF",

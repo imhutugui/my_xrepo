@@ -12,20 +12,15 @@ package("iridescence")
 
     on_install(function (package)
         local sourcedir = path.join(package:cachedir(), "source", "iridescence")
-        print("DEBUG: sourcedir = " .. sourcedir)
-        
-        -- Always checkout submodules
         if os.isfile(path.join(sourcedir, ".gitmodules")) then
             os.vrunv("git", {"submodule", "update", "--init", "--recursive"}, {curdir = sourcedir})
         end
 
-        print("DEBUG: Checking CMakeLists.txt for glm block...")
+        -- Patch 1: CMakeLists.txt - ensure glm::glm target is created
         local cmakelists = path.join(sourcedir, "CMakeLists.txt")
         if os.isfile(cmakelists) then
             local cl = io.readfile(cmakelists)
-            print("DEBUG: CMakeLists.txt found, length = " .. #tostring(cl or ""))
             if cl and cl:find("if(NOT glm_FOUND)") then
-                print("DEBUG: if(NOT glm_FOUND) found")
                 cl = cl:gsub(
                     "if%(NOT glm_FOUND%).*endif%()",
                     "if(NOT TARGET glm::glm)\n" ..
@@ -35,22 +30,18 @@ package("iridescence")
                     "endif()\n",
                     1
                 )
-                print("DEBUG: glm block replaced, writing...")
                 io.writefile(cmakelists, cl)
-                print("DEBUG: CMakeLists.txt written")
             end
         end
 
-        print("DEBUG: Checking implot_items.cpp...")
+        -- Patch 2: implot_items.cpp - fix ImGui 1.89 compatibility
+        -- AddConcavePolyFilled was added in ImGui 1.90, replace with AddConvexPolyFilled
         local implot_items = path.join(sourcedir, "thirdparty", "implot", "implot_items.cpp")
         if os.isfile(implot_items) then
             local im = io.readfile(implot_items)
             if im and im:find("AddConcavePolyFilled") then
-                print("DEBUG: AddConcavePolyFilled found, patching...")
-                -- Simple replace: just remove the AddConcavePolyFilled line and use AddConvexPolyFilled
-                im = im:gsub("draw_list[%w:]*AddConcavePolyFilled%(.*%)", "draw_list:AddConvexPolyFilled(%1)", 1)
+                im = im:gsub("AddConcavePolyFilled", "AddConvexPolyFilled", 1)
                 io.writefile(implot_items, im)
-                print("DEBUG: implot_items.cpp patched")
             end
         end
 
@@ -89,7 +80,7 @@ package("iridescence")
 
         import("package.tools.cmake").install(package, configs)
 
-        -- Move headers
+        -- Move headers from include/iridescence/ to include/
         local inc_irid = path.join(package:installdir(), "include", "iridescence")
         if os.isdir(inc_irid) then
             local inc_dir = path.join(package:installdir(), "include")
