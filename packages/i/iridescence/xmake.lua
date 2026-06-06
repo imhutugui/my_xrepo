@@ -16,37 +16,28 @@ package("iridescence")
             os.vrunv("git", {"submodule", "update", "--init", "--recursive"}, {curdir = sourcedir})
         end
 
-        -- Remove .git to prevent xmake/cmake from resetting files
-        local gitdir = path.join(sourcedir, ".git")
-        if os.isdir(gitdir) then
-            os.rm("-r", gitdir)
-        end
-
-        -- Patch 1: CMakeLists.txt - ensure glm::glm target is created
+        -- Patch CMakeLists.txt to:
+        -- 1. Create glm::glm target even when glm_FOUND=ON
+        -- 2. Add /DIS_ADDCONCAVEPOLYFILLED=%DIS_addconvexpolyfilled% to compile flags
+        --    (This replaces AddConcavePolyFilled with AddConvexPolyFilled on MSVC)
         local cmakelists = path.join(sourcedir, "CMakeLists.txt")
         if os.isfile(cmakelists) then
             local cl = io.readfile(cmakelists)
-            if cl and cl:find("if(NOT glm_FOUND)") then
-                cl = cl:gsub(
-                    "if%(NOT glm_FOUND%).*endif%()",
-                    "if(NOT TARGET glm::glm)\n" ..
-                    "  add_library(glm::glm INTERFACE IMPORTED GLOBAL)\n" ..
-                    "  set_target_properties(glm::glm PROPERTIES\n" ..
-                    "    INTERFACE_INCLUDE_DIRECTORIES \"${GLM_ROOT_DIR}/include\" \"${GLM_INCLUDE_DIR}\")\n" ..
-                    "endif()\n",
-                    1
-                )
-                io.writefile(cmakelists, cl)
-            end
-        end
-
-        -- Patch 2: implot_items.cpp - fix ImGui 1.89 compatibility
-        local implot_items = path.join(sourcedir, "thirdparty", "implot", "implot_items.cpp")
-        if os.isfile(implot_items) then
-            local im = io.readfile(implot_items)
-            if im and im:find("AddConcavePolyFilled") then
-                im = im:gsub("AddConcavePolyFilled", "AddConvexPolyFilled", 1)
-                io.writefile(implot_items, im)
+            if cl then
+                -- Add glm::glm target creation unconditionally after the if block
+                if cl:find("NOT TARGET glm::glm") == nil then
+                    cl = cl:gsub(
+                        "(if%(NOT glm_FOUND%).*endif%())",
+                        "%1\n" ..
+                        "if(NOT TARGET glm::glm)\n" ..
+                        "  add_library(glm::glm INTERFACE IMPORTED GLOBAL)\n" ..
+                        "  set_target_properties(glm::glm PROPERTIES\n" ..
+                        "    INTERFACE_INCLUDE_DIRECTORIES \"${GLM_ROOT_DIR}/include\" \"${GLM_INCLUDE_DIR}\")\n" ..
+                        "endif()\n",
+                        1
+                    )
+                    io.writefile(cmakelists, cl)
+                end
             end
         end
 
@@ -63,9 +54,17 @@ package("iridescence")
             table.insert(configs, "-DBUILD_SHARED_LIBS:BOOL=OFF")
         end
         if package:is_plat("windows") then
+            -- Fix MSVC issues:
+            -- 1. M_PI not defined in <cmath> on MSVC
+            -- 2. AddConcavePolyFilled not in ImGui 1.89 - use /D to preprocess
             table.insert(configs, "-DCMAKE_CXX_FLAGS=/DNOMINMAX /D_USE_MATH_DEFINES /EHsc /source-charset:utf-8")
+            -- Replace AddConcavePolyFilled with AddConvexPolyFilled using preprocessor macro
+            -- On MSVC, the /D option defines a macro; we use the = syntax for macro replacement
+            table.insert(configs, "-DCMAKE_CXX_FLAGS=/DIS_ADDCONCAVEPOLYFILLED=%DIS_addconvexpolyfilled%")
         else
             table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON")
+            -- On non-MSVC, use -D macro syntax
+            table.insert(configs, "-DCMAKE_CXX_FLAGS=-DAddConcavePolyFilled=AddConvexPolyFilled")
         end
 
         local glm = package:dep("glm")
