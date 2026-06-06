@@ -12,22 +12,20 @@ package("iridescence")
 
     on_install(function (package)
         local sourcedir = path.join(package:cachedir(), "source", "iridescence")
+        print("DEBUG: sourcedir = " .. sourcedir)
+        
+        -- Always checkout submodules
         if os.isfile(path.join(sourcedir, ".gitmodules")) then
-            if not os.isfile(path.join(sourcedir, "thirdparty", "imgui", "imgui.cpp")) then
-                os.vrunv("git", {"submodule", "update", "--init", "--recursive"}, {curdir = sourcedir})
-            end
+            os.vrunv("git", {"submodule", "update", "--init", "--recursive"}, {curdir = sourcedir})
         end
 
-        -- Patch 1: CMakeLists.txt - ensure glm::glm target is always created
-        -- When -Dglm_FOUND=ON is passed, the if(NOT glm_FOUND) block is skipped
-        -- and glm::glm target is never created. Fix: replace the block.
+        print("DEBUG: Checking CMakeLists.txt for glm block...")
         local cmakelists = path.join(sourcedir, "CMakeLists.txt")
         if os.isfile(cmakelists) then
             local cl = io.readfile(cmakelists)
-            if cl and cl:find("if(NOT glm_FOUND)") and cl:find("glm::glm") then
-                -- Use .*(greedy) with count 1 for Lua 5.1 compatibility
-                -- Matches from if(NOT glm_FOUND) to the LAST endif() in the file
-                -- But we only do 1 replacement, so it gets the entire block
+            print("DEBUG: CMakeLists.txt found, length = " .. #tostring(cl or ""))
+            if cl and cl:find("if(NOT glm_FOUND)") then
+                print("DEBUG: if(NOT glm_FOUND) found")
                 cl = cl:gsub(
                     "if%(NOT glm_FOUND%).*endif%()",
                     "if(NOT TARGET glm::glm)\n" ..
@@ -37,22 +35,22 @@ package("iridescence")
                     "endif()\n",
                     1
                 )
+                print("DEBUG: glm block replaced, writing...")
                 io.writefile(cmakelists, cl)
+                print("DEBUG: CMakeLists.txt written")
             end
         end
 
-        -- Patch 2: implot_items.cpp - fix ImGui 1.89 compatibility
-        -- AddConcavePolyFilled was added in ImGui 1.90
+        print("DEBUG: Checking implot_items.cpp...")
         local implot_items = path.join(sourcedir, "thirdparty", "implot", "implot_items.cpp")
         if os.isfile(implot_items) then
             local im = io.readfile(implot_items)
             if im and im:find("AddConcavePolyFilled") then
-                im = im:gsub(
-                    "draw_list[%w:]*AddConcavePolyFilled%(([^,]+), ([^,]+), ([^)]+)%)",
-                    "draw_list:AddPolyline(%1, %2, %3)\n            draw_list:ClosePolygon()",
-                    1
-                )
+                print("DEBUG: AddConcavePolyFilled found, patching...")
+                -- Simple replace: just remove the AddConcavePolyFilled line and use AddConvexPolyFilled
+                im = im:gsub("draw_list[%w:]*AddConcavePolyFilled%(.*%)", "draw_list:AddConvexPolyFilled(%1)", 1)
                 io.writefile(implot_items, im)
+                print("DEBUG: implot_items.cpp patched")
             end
         end
 
@@ -91,7 +89,7 @@ package("iridescence")
 
         import("package.tools.cmake").install(package, configs)
 
-        -- Move headers from include/iridescence/ to include/
+        -- Move headers
         local inc_irid = path.join(package:installdir(), "include", "iridescence")
         if os.isdir(inc_irid) then
             local inc_dir = path.join(package:installdir(), "include")
