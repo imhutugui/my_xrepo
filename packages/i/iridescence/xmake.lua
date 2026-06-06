@@ -18,16 +18,11 @@ package("iridescence")
             end
         end
 
-        -- Patch CMakeLists.txt to always create glm::glm target
+        -- Patch 1: CMakeLists.txt - always create glm::glm target
         local cmakelists = path.join(sourcedir, "CMakeLists.txt")
         if os.isfile(cmakelists) then
-            -- Check if the patch is already applied
             local cl_content = io.readfile(cmakelists)
             if cl_content and cl_content:find("if(NOT TARGET glm::glm)") == nil then
-                -- Read the original content and add target creation before target_link_libraries
-                -- iridescence's CMakeLists.txt has: target_link_libraries(iridescence PRIVATE glm::glm ...)
-                -- FindGLM.cmake doesn't create glm::glm when glm_FOUND=ON
-                -- So we need to add a target creation before the link
                 local patched = cl_content:gsub(
                     "(target_link_libraries%(iridescence PRIVATE)",
                     "if(NOT TARGET glm::glm)\n  add_library(glm::glm INTERFACE IMPORTED GLOBAL)\n  set_target_properties(glm::glm PROPERTIES\n    INTERFACE_INCLUDE_DIRECTORIES \"${GLM_INCLUDE_DIR}\")\nendif()\n%1"
@@ -36,6 +31,39 @@ package("iridescence")
             end
         end
 
+        -- Patch 2: implot_items.cpp - fix ImGui 1.89 compatibility
+        -- AddConcavePolyFilled was added in ImGui 1.90, replace with AddPolyline + ClosePolygon
+        local implot_items = path.join(sourcedir, "thirdparty", "implot", "implot_items.cpp")
+        if os.isfile(implot_items) then
+            local im_content = io.readfile(implot_items)
+            if im_content and im_content:find("AddConcavePolyFilled") then
+                im_content = im_content:gsub(
+                    "draw_list[%w:]*AddConcavePolyFilled%(([^,]+), ([^,]+), ([^)]+)%)",
+                    "draw_list:AddPolyline(%1, %2, %3)\n            draw_list:ClosePolygon()"
+                )
+                io.writefile(implot_items, im_content)
+            end
+        end
+
+        -- Patch 3: region_growing.hpp - add #include <cmath> for M_PI on MSVC
+        local rg_hpp = path.join(sourcedir, "include", "gtsam_points", "segmentation", "region_growing.hpp")
+        if os.isfile(rg_hpp) then
+            local rg_content = io.readfile(rg_hpp)
+            if rg_content and not rg_content:find("#include.*cmath") then
+                rg_content = rg_content:gsub(
+                    "(#include <cmath>)",
+                    "%1\n#include <limits>"
+                )
+                -- For MSVC, M_PI is not defined by cmath; add it
+                rg_content = rg_content:gsub(
+                    "(#include <cmath>)",
+                    "%1\n#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif"
+                )
+                io.writefile(rg_hpp, rg_content)
+            end
+        end
+
+        -- Build configuration
         local configs = {
             "-DBUILD_EXAMPLES:BOOL=OFF",
             "-DBUILD_PYTHON_BINDINGS:BOOL=OFF",
@@ -71,6 +99,7 @@ package("iridescence")
 
         import("package.tools.cmake").install(package, configs)
 
+        -- Move headers from include/iridescence/ to include/
         local inc_irid = path.join(package:installdir(), "include", "iridescence")
         if os.isdir(inc_irid) then
             local inc_dir = path.join(package:installdir(), "include")

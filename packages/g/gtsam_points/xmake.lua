@@ -18,6 +18,19 @@ package("gtsam_points")
     end)
 
     on_install(function (package)
+        local sourcedir = path.join(package:cachedir(), "source", "gtsam_points")
+
+        -- MSVC does not allow default arguments in explicit template instantiation
+        -- Fix: remove "= Eigen::Isometry3d::Identity" from fast_occupancy_grid.cpp
+        local foo_file = path.join(sourcedir, "src", "gtsam_points", "ann", "fast_occupancy_grid.cpp")
+        if os.isfile(foo_file) then
+            local content = io.readfile(foo_file)
+            if content and content:find("= Eigen::Isometry3d::Identity()") then
+                content = content:gsub("= Eigen::Isometry3d::Identity()%(%)", "")
+                io.writefile(foo_file, content)
+            end
+        end
+
         local configs = {
             "-DBUILD_TESTS=OFF",
             "-DBUILD_DEMO=OFF",
