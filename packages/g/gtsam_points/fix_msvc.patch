@@ -1,0 +1,105 @@
+diff --git a/include/gtsam_points/registration/ransac.hpp b/include/gtsam_points/registration/ransac.hpp
+index 78328e8..dadab05 100644
+--- a/include/gtsam_points/registration/ransac.hpp
++++ b/include/gtsam_points/registration/ransac.hpp
+@@ -1,6 +1,9 @@
+ // SPDX-License-Identifier: MIT
+ // Copyright (c) 2025  Kenji Koide (k.koide@aist.go.jp)
+ #pragma once
++#ifndef M_PI
++#define M_PI 3.14159265358979323846
++#endif
+ 
+ #include <random>
+ #include <vector>
+diff --git a/include/gtsam_points/segmentation/min_cut.hpp b/include/gtsam_points/segmentation/min_cut.hpp
+index 8af6341..1a2a005 100644
+--- a/include/gtsam_points/segmentation/min_cut.hpp
++++ b/include/gtsam_points/segmentation/min_cut.hpp
+@@ -2,6 +2,9 @@
+ // Copyright (c) 2025  Kenji Koide (k.koide@aist.go.jp)
+ 
+ #pragma once
++#ifndef M_PI
++#define M_PI 3.14159265358979323846
++#endif
+ 
+ #include <deque>
+ #include <vector>
+diff --git a/include/gtsam_points/segmentation/region_growing.hpp b/include/gtsam_points/segmentation/region_growing.hpp
+index a861eb8..bc01566 100644
+--- a/include/gtsam_points/segmentation/region_growing.hpp
++++ b/include/gtsam_points/segmentation/region_growing.hpp
+@@ -2,6 +2,9 @@
+ // Copyright (c) 2025  Kenji Koide (k.koide@aist.go.jp)
+ 
+ #pragma once
++#ifndef M_PI
++#define M_PI 3.14159265358979323846
++#endif
+ 
+ #include <deque>
+ #include <vector>
+diff --git a/src/gtsam_points/ann/fast_occupancy_grid.cpp b/src/gtsam_points/ann/fast_occupancy_grid.cpp
+index 018bb73..13dd2a4 100644
+--- a/src/gtsam_points/ann/fast_occupancy_grid.cpp
++++ b/src/gtsam_points/ann/fast_occupancy_grid.cpp
+@@ -92,14 +92,14 @@ void FastOccupancyGrid::rehash(size_t hash_size) {
+   blocks = std::move(new_blocks);
+ }
+ 
+-template void FastOccupancyGrid::insert<PointCloud>(const PointCloud& points, const Eigen::Isometry3d& pose = Eigen::Isometry3d::Identity());
+-template int FastOccupancyGrid::calc_overlap<PointCloud>(const PointCloud& points, const Eigen::Isometry3d& pose = Eigen::Isometry3d::Identity())
++template void FastOccupancyGrid::insert<PointCloud>(const PointCloud& points, const Eigen::Isometry3d& pose);
++template int FastOccupancyGrid::calc_overlap<PointCloud>(const PointCloud& points, const Eigen::Isometry3d& pose)
+   const;
+ template double FastOccupancyGrid::calc_overlap_rate<PointCloud>(
+   const PointCloud& points,
+-  const Eigen::Isometry3d& pose = Eigen::Isometry3d::Identity()) const;
++  const Eigen::Isometry3d& pose) const;
+ template std::vector<unsigned char> FastOccupancyGrid::get_overlaps<PointCloud>(
+   const PointCloud& points,
+-  const Eigen::Isometry3d& pose = Eigen::Isometry3d::Identity()) const;
++  const Eigen::Isometry3d& pose) const;
+ 
+ }  // namespace gtsam_points
+\ No newline at end of file
+diff --git a/src/gtsam_points/features/fpfh_estimation.cpp b/src/gtsam_points/features/fpfh_estimation.cpp
+index 4485b05..3e35a48 100644
+--- a/src/gtsam_points/features/fpfh_estimation.cpp
++++ b/src/gtsam_points/features/fpfh_estimation.cpp
+@@ -44,6 +44,9 @@
+ #include <gtsam_points/features/fpfh_estimation.hpp>
+ 
+ #include <numeric>
++#ifndef M_PI
++#define M_PI 3.14159265358979323846
++#endif
+ #include <Eigen/Geometry>
+ #include <gtsam_points/config.hpp>
+ #include <gtsam_points/util/fast_floor.hpp>
+diff --git a/src/gtsam_points/types/gaussian_voxelmap_cpu_funcs.cpp b/src/gtsam_points/types/gaussian_voxelmap_cpu_funcs.cpp
+index 8b6c231..2c3e995 100644
+--- a/src/gtsam_points/types/gaussian_voxelmap_cpu_funcs.cpp
++++ b/src/gtsam_points/types/gaussian_voxelmap_cpu_funcs.cpp
+@@ -6,6 +6,7 @@
+ #include <memory>
+ #include <fstream>
+ #include <iostream>
++#include <numeric>
+ #include <unordered_set>
+ 
+ #include <Eigen/Core>
+diff --git a/src/gtsam_points/types/point_cloud_cpu.cpp b/src/gtsam_points/types/point_cloud_cpu.cpp
+index 3073975..8acb3da 100644
+--- a/src/gtsam_points/types/point_cloud_cpu.cpp
++++ b/src/gtsam_points/types/point_cloud_cpu.cpp
+@@ -268,7 +268,7 @@ PointCloudCPU::Ptr PointCloudCPU::load(const std::string& path) {
+   const std::regex aux_name_regex("/aux_([^_]+).bin");
+   for (; itr != end; itr++) {
+     std::smatch matched;
+-    if (!std::regex_search(itr->path().string(), matched, aux_name_regex)) {
++    const std::string path_str = itr->path().string(); if (!std::regex_search(path_str, matched, aux_name_regex)) {
+       continue;
+     }
+     const std::string name = matched.str(1);
