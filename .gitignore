@@ -6,5 +6,6 @@ test_gtsam_only/
 .cursor/
 .codegraph/
 .agnes/
+.xmake/
 .DS_Store
 *.log
