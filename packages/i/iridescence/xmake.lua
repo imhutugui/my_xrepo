@@ -101,17 +101,24 @@ endif()]])
             end
         end
 
-        -- Build
+        -- Build configuration: use dynamic library by default via BUILD_SHARED_LIBS
         local configs = {
             "-DBUILD_EXAMPLES:BOOL=OFF",
             "-DBUILD_PYTHON_BINDINGS:BOOL=OFF",
             "-DBUILD_EXT_TESTS:BOOL=OFF",
             "-DBUILD_WITH_MARCH_NATIVE:BOOL=OFF",
             "-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS:BOOL=ON",
-            "-DBUILD_SHARED_LIBS:BOOL=OFF",
             "-Dglfw3_FOUND:BOOL=ON",
             "-DEigen3_FOUND:BOOL=ON",
         }
+        
+        -- Enable shared library building if package:config("shared") is true
+        if package:config("shared") then
+            table.insert(configs, "-DBUILD_SHARED_LIBS:BOOL=ON")
+        else
+            table.insert(configs, "-DBUILD_SHARED_LIBS:BOOL=OFF")
+        end
+        
         if glm then
             table.insert(configs, "-DGLM_ROOT_DIR=" .. glm:installdir())
             table.insert(configs, "-DGLM_INCLUDE_DIR=" .. path.join(glm:installdir(), "include"))
