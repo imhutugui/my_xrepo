@@ -7,7 +7,7 @@ package("gtsam_points")
 
     add_versions("v1.2.1", "620ad2786833601c81453eb7ad09a24d4331063a")
 
-    add_deps("cmake", "gtsam 4.2.1", "eigen")
+    add_deps("cmake", "gtsam 4.2.2", "eigen")
     add_deps("boost", {configs = {graph = true, filesystem = true}})
 
     on_load(function (package)
