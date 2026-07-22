@@ -1,7 +1,0 @@
-{
-    cmdlines = {
-        "xmake lua private.xrepo search eigen",
-        "xmake lua private.xrepo search eigen3",
-        "xmake lua private.xrepo search eigen"
-    }
-}
