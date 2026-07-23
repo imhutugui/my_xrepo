@@ -6,6 +6,7 @@ package("gtsam_points")
     add_urls("https://github.com/koide3/gtsam_points.git")
 
     add_versions("v1.2.1", "620ad2786833601c81453eb7ad09a24d4331063a")
+    add_versions("v1.2.2", "16a1ccbd10ca75cb4b7afd3b9502e69972e2f9ef")
 
     add_deps("cmake", "gtsam 4.2.2", "eigen")
     add_deps("boost", {configs = {graph = true, filesystem = true}})
@@ -46,7 +47,7 @@ package("gtsam_points")
             return string.gsub(s, '[.%%+%*%-?%[%]^%$%(%)]', '%%%1')
         end
 
-        -- Patch 1: CMakeLists.txt - add _USE_MATH_DEFINES via target_compile_definitions
+        -- Patch 1: CMakeLists.txt - add _USE_MATH_DEFINES, force all symbols to be exported on Windows
         local cmake = path.join(sourcedir, "CMakeLists.txt")
         local cl = read_text(cmake)
         if cl then
@@ -80,6 +81,55 @@ package("gtsam_points")
                 end
             else
                 print("DEBUG: CMakeLists.txt already has _USE_MATH_DEFINES")
+            end
+
+            -- Patch 1b: Force all symbols to be exported on Windows
+            -- This is needed because gtsam_points doesn't have __declspec(dllexport) annotations
+            -- We modify the CMakeLists.txt directly to set the property
+            local cmake2 = path.join(sourcedir, "CMakeLists.txt")
+            local cl2 = read_text(cmake2)
+            if cl2 then
+                if not string.find(cl2, "WINDOWS_EXPORT_ALL_SYMBOLS", 1, true) then
+                    -- Find the set_target_properties for gtsam_points and add WINDOWS_EXPORT_ALL_SYMBOLS
+                    local props_pattern = "set_target_properties(gtsam_points PROPERTIES"
+                    local props_idx = string.find(cl2, props_pattern, 1, true)
+                    if props_idx then
+                        -- Find the closing parenthesis
+                        local depth = 0
+                        local endpos = 0
+                        for i = props_idx, #cl2 do
+                            local c = cl2:sub(i, i)
+                            if c == "(" then depth = depth + 1 end
+                            if c == ")" then
+                                depth = depth - 1
+                                if depth == 0 then
+                                    endpos = i
+                                    break
+                                end
+                            end
+                        end
+                        if endpos > 0 then
+                            -- Insert WINDOWS_EXPORT_ALL_SYMBOLS before the closing parenthesis
+                            local props_content = cl2:sub(props_idx, endpos)
+                            -- Find the last ")" and insert before it
+                            local last_paren = string.find(props_content, ")", -1, true)
+                            if last_paren then
+                                local new_props = props_content:sub(1, last_paren - 1) .. "\n  WINDOWS_EXPORT_ALL_SYMBOLS ON\n)"
+                                cl2 = cl2:sub(1, props_idx - 1) .. new_props .. cl2:sub(endpos + 1)
+                                write_text(cmake2, cl2)
+                                print("DEBUG: Added WINDOWS_EXPORT_ALL_SYMBOLS to gtsam_points")
+                            else
+                                print("DEBUG: Could not find closing parenthesis in props_content")
+                            end
+                        else
+                            print("DEBUG: Could not find closing parenthesis for set_target_properties")
+                        end
+                    else
+                        print("DEBUG: Could not find set_target_properties(gtsam_points PROPERTIES)")
+                    end
+                else
+                    print("DEBUG: WINDOWS_EXPORT_ALL_SYMBOLS already present")
+                end
             end
         else
             print("DEBUG: Could not read CMakeLists.txt")
@@ -246,6 +296,11 @@ package("gtsam_points")
                 table.insert(configs, "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
             end
         end
+
+        -- Force static library on Windows to avoid template export issues
+        if package:is_plat("windows") then
+            table.insert(configs, "-DBUILD_SHARED_LIBS=OFF")
+        end
         if package:is_plat("windows") then
             table.insert(configs, "-DBUILD_WITH_TBB=OFF")
             table.insert(configs, "-DBUILD_WITH_OPENMP=OFF")
@@ -258,7 +313,7 @@ package("gtsam_points")
         -- Add compile definitions to xmake flags
         import("package.tools.cmake").install(package, {
             configs = configs,
-            cxxflags = "/DNOMINMAX /D_USE_MATH_DEFINES /EHsc",
+            cxxflags = "/DNOMINMAX /D_USE_MATH_DEFINES /EHsc /bigobj",
         })
     end)
 
