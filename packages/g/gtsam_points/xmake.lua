@@ -17,7 +17,7 @@ package("gtsam_points")
         end
     end)
 
-    on_install(function (package)
+    on_install("windows", function (package)
         local sourcedir = path.join(package:cachedir(), "source", "gtsam_points")
         print("DEBUG on_install: sourcedir=" .. sourcedir)
 
@@ -317,12 +317,90 @@ package("gtsam_points")
         })
     end)
 
+    on_install("linux", function (package)
+        local sourcedir = path.join(package:cachedir(), "source", "gtsam_points")
+
+        local function read_text(filepath)
+            local f = io.open(filepath, "r")
+            if not f then return nil end
+            local content = f:read("*a")
+            f:close()
+            return content
+        end
+        local function write_text(filepath, content)
+            local f = io.open(filepath, "w")
+            if not f then
+                print("ERROR: Cannot write " .. filepath)
+                return false
+            end
+            f:write(content)
+            f:close()
+            return true
+        end
+        local function lpat(s)
+            return string.gsub(s, '[.%%+%*%-?%[%]^%$%(%)]', '%%%1')
+        end
+
+        -- The source cache is shared with the Windows branch, which injects MSVC-only
+        -- options into CMakeLists.txt. Strip them so GCC does not choke on /DNOMINMAX.
+        local cmake = path.join(sourcedir, "CMakeLists.txt")
+        local cl = read_text(cmake)
+        if cl then
+            local msvc_block = "\ntarget_compile_definitions(gtsam_points PRIVATE _USE_MATH_DEFINES)\ntarget_compile_options(gtsam_points PRIVATE /DNOMINMAX)\n"
+            local cleaned = cl:gsub(lpat(msvc_block), "")
+            if cleaned ~= cl then
+                write_text(cmake, cleaned)
+                print("INFO: Removed MSVC-only compile options from CMakeLists.txt")
+            end
+        end
+
+        -- glibc hides M_PI under strict -std=c++17; these are public headers, so guard it.
+        local headers = {
+            "include/gtsam_points/segmentation/region_growing.hpp",
+            "include/gtsam_points/registration/ransac.hpp",
+            "include/gtsam_points/segmentation/min_cut.hpp",
+        }
+        for _, rel in ipairs(headers) do
+            local fpath = path.join(sourcedir, rel)
+            local content = read_text(fpath)
+            if content and not string.find(content, "ifndef M_PI", 1, true) then
+                content = content:gsub(lpat("#pragma once"), "#pragma once\n#ifndef M_PI\n#define M_PI 3.14159265358979323846\n#endif\n", 1)
+                write_text(fpath, content)
+            end
+        end
+
+        -- std::accumulate is used without including <numeric>.
+        local gaussian_voxel = path.join(sourcedir, "src/gtsam_points/types/gaussian_voxelmap_cpu_funcs.cpp")
+        local gv_content = read_text(gaussian_voxel)
+        if gv_content and not string.find(gv_content, "#include <numeric>", 1, true) then
+            local newline_idx = string.find(gv_content, "\n", string.find(gv_content, "#include", 1, true))
+            if newline_idx then
+                gv_content = gv_content:sub(1, newline_idx) .. "#include <numeric>\n" .. gv_content:sub(newline_idx + 1)
+                write_text(gaussian_voxel, gv_content)
+            end
+        end
+
+        local configs = {
+            "-DBUILD_TESTS=OFF",
+            "-DBUILD_DEMO=OFF",
+            "-DBUILD_EXAMPLE=OFF",
+            "-DBUILD_TOOLS=OFF",
+            "-DBUILD_WITH_CUDA=OFF",
+            "-DBUILD_WITH_MARCH_NATIVE=OFF",
+            "-DBUILD_WITH_TBB=ON",
+            "-DBUILD_WITH_OPENMP=ON",
+            "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"),
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+        }
+        import("package.tools.cmake").install(package, configs)
+    end)
+
     on_test(function (package)
         assert(package:check_cxxsnippets({test = [[
             #include <gtsam_points/types/point_cloud.hpp>
             void test() {
                 gtsam_points::PointCloud cloud;
             }
-        ]]}))
+        ]]}, {configs = {languages = "c++17"}}))
     end)
 package_end()
