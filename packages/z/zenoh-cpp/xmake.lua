@@ -2,7 +2,7 @@ package("zenoh-cpp")
     set_kind("library", {headeronly = true})
     set_homepage("https://github.com/eclipse-zenoh/zenoh-cpp")
     set_description("C++ bindings for Eclipse zenoh, as a zero cost header wrapper on top of zenoh-c")
-    set_license("EPL-2.0")
+    set_license("EPL-2.0 OR Apache-2.0")
 
     -- Submodules carry the backends themselves; zenoh-c comes from the zenoh-c package instead.
     add_urls("https://github.com/eclipse-zenoh/zenoh-cpp.git", {submodules = false})

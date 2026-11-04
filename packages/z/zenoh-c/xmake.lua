@@ -1,7 +1,7 @@
 package("zenoh-c")
     set_homepage("https://github.com/eclipse-zenoh/zenoh-c")
     set_description("The C bindings for Eclipse zenoh")
-    set_license("EPL-2.0")
+    set_license("EPL-2.0 OR Apache-2.0")
 
     add_urls("https://github.com/eclipse-zenoh/zenoh-c.git")
 
