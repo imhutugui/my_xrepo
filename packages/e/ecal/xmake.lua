@@ -36,8 +36,9 @@ package("ecal")
     end
 
     on_load(function (package)
-        -- ecal_core itself never refers to protobuf; only ecal_core_pb and ecal_protobuf_base do,
-        -- and they leave protobuf symbols undefined for the consumer to resolve.
+        -- Only ecal_core_pb and ecal_protobuf_base use protobuf, and protobuf-cpp builds static by
+        -- default, so it ends up absorbed inside those two shared libraries. The dep still has to be
+        -- exported: a consumer compiling its own .pb.h needs the matching headers and protoc.
         if package:config("protobuf") then
             -- Protobuf made Descriptor::name() and friends return absl::string_view from 29 onward
             -- (port_def.inc defines PROTOBUF_FUTURE_STRING_VIEW_RETURN_TYPE unconditionally), while
