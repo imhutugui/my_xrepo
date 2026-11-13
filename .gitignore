@@ -9,3 +9,4 @@ test_gtsam_only/
 .xmake/
 .DS_Store
 *.log
+.workbuddy/

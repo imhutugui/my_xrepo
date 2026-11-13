@@ -33,9 +33,25 @@ package("ecal")
 
     if is_plat("linux") then
         add_syslinks("pthread", "rt", "dl")
+    elseif is_plat("windows") then
+        -- ecal/core/CMakeLists.txt links these into the DLL itself as PRIVATE, so the import
+        -- library does not carry them; eCAL's public headers still reference Winsock/WIN32 APIs
+        -- inline, and a consumer that only links ecal_core.lib would otherwise fail to resolve
+        -- them. Keep the list in sync with the WIN32 entries of ecal_core_private.
+        add_syslinks("ws2_32", "wsock32", "iphlpapi", "psapi", "shlwapi", "winmm",
+                     "advapi32", "user32", "shell32")
     end
 
     on_load(function (package)
+        if package:is_plat("windows") then
+            -- ecal/core/include/ecal/os.h gates __declspec(dllimport) on this macro. Without it
+            -- ECAL_API expands to nothing and exported data symbols (not just functions) fail to
+            -- link against ecal_core.lib on MSVC.
+            package:add("defines", "ECAL_CORE_IMPORTS")
+            -- The DLLs are installed to bin/, not lib/. Both the package's own test snippets and
+            -- `xmake run` for consumers need them on PATH.
+            package:addenv("PATH", "bin")
+        end
         -- Only ecal_core_pb and ecal_protobuf_base use protobuf, and protobuf-cpp builds static by
         -- default, so it ends up absorbed inside those two shared libraries. The dep still has to be
         -- exported: a consumer compiling its own .pb.h needs the matching headers and protoc.
@@ -51,7 +67,14 @@ package("ecal")
         end
     end)
 
-    on_install("linux", function (package)
+    on_install("linux", "windows", function (package)
+        -- CMake accepts forward slashes in paths on Windows, while backslashes inside a -D
+        -- cache value can be eaten by the cache parser (CMAKE_PROJECT_TOP_LEVEL_INCLUDES is a
+        -- list). Normalise every path we hand to cmake so the same configs work on both platforms.
+        local function cmake_path(p)
+            return (p:gsub("\\", "/"))
+        end
+
         -- The directories already exist in the archive with only their cmake wrappers, so each
         -- submodule tree is filled in where eCAL's build-*.cmake expects it. The resource is
         -- extracted under a single <repo>-<commit> folder, which archive.extract keeps.
@@ -66,12 +89,15 @@ package("ecal")
         -- Every find_package() inside the tree goes through this provider; without it the bundled
         -- dependencies are never wired up and the configure fails.
         local configs = {
-            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=" .. path.absolute("cmake/submodule_dependencies.cmake"),
+            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=" .. cmake_path(path.absolute("cmake/submodule_dependencies.cmake")),
             "-DECAL_THIRDPARTY_BUILD_ASIO=OFF",
             "-DECAL_THIRDPARTY_BUILD_TCLAP=OFF",
             "-DECAL_THIRDPARTY_BUILD_YAML-CPP=OFF",
             -- the release archive is not a git tree, so eCAL would otherwise configure version 0.0.0
             "-DECAL_BUILD_VERSION=" .. package:version(),
+            -- Shared on both platforms: with ON the helper libs from ecal_add_library() are DLLs
+            -- too, so Windows and Linux install the same layout. Their missing import libraries
+            -- are handled by CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS below.
             "-DBUILD_SHARED_LIBS=ON",
             -- applications, bindings and the record/playback toolchain are not library dependencies
             "-DECAL_BUILD_APPS=OFF",
@@ -87,6 +113,18 @@ package("ecal")
             "-DECAL_USE_CURL=OFF",
             "-DECAL_USE_FTXUI=OFF",
         }
+        if package:is_plat("windows") then
+            -- CMake 3.4+: CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS initialises the WINDOWS_EXPORT_ALL_SYMBOLS
+            -- property on every target created afterwards, so it must be a -D cache value set before
+            -- any add_library(). For each SHARED target CMake then builds a .def from all global
+            -- symbols in the input .obj files and passes it to the linker, which gives the helper
+            -- DLLs (ecal-utils, ecaludp, tcp_pubsub, ...) an import library. Without it they export
+            -- nothing, MSVC emits no .lib, and ecal_core.dll's link fails with LNK1181.
+            -- MSVC-specific. Global *data* symbols still need __declspec(dllimport) on the consumer;
+            -- eCAL core does that itself through ECAL_CORE_IMPORTS (see on_load). Function symbols
+            -- are exported/imported automatically.
+            table.insert(configs, "-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON")
+        end
         if package:config("protobuf") then
             -- The pbftags plugin is written against the protobuf 3.11 API eCAL vendors (it uses
             -- FieldDescriptor::label() and the two-argument io::Printer), which even the pinned
@@ -103,7 +141,7 @@ package("ecal")
             -- a path, and reusing protobuf-cpp's own abseil avoids pulling in a second version.
             table.insert(configs, "-DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON")
             local abseil = package:dep("protobuf-cpp"):dep("abseil")
-            table.insert(configs, "-Dabsl_DIR=" .. path.join(abseil:installdir(), "lib", "cmake", "absl"))
+            table.insert(configs, "-Dabsl_DIR=" .. cmake_path(path.join(abseil:installdir(), "lib", "cmake", "absl")))
         else
             table.insert(configs, "-DECAL_USE_PROTOBUF=OFF")
         end
