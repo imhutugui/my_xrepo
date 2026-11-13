@@ -7,6 +7,7 @@ package("gtsam")
     add_versions("4.2.0", "4f66a491ffc83cf092d0d818b11dc35135521612")
     add_versions("4.2.1", "0a070c2700fcf6fc7b960da8d734bbd02043c89a")
     add_versions("4.2.2", "35dd70360fb39c81081b8f420a4d72e0b896a96e")
+    add_versions("4.3.0", "71a25ca36c084cbad1f872e812d6d97fbadfdb05")
 
     add_deps("cmake")
     add_deps("eigen 3.4.0")
@@ -18,6 +19,13 @@ package("gtsam")
         -- TBB is optional; skip on Windows due to build complexity
         if not package:is_plat("windows") then
             package:add("deps", "tbb")
+        end
+
+        -- GTSAM 4.3 split Cephes out into libcephes-gtsam.a. Left to xmake's link auto-detection the
+        -- archives come out of lib/ in file order, which puts -lcephes-gtsam ahead of -lgtsam and
+        -- leaves gtsam_cephes_* unresolved, so the static link order is spelled out here.
+        if package:version() and package:version():ge("4.3") then
+            package:add("links", "gtsam_unstable", "gtsam", "cephes-gtsam")
         end
 
         if package:is_plat("windows") then
@@ -113,6 +121,6 @@ package("gtsam")
             void test() {
                 gtsam::BetweenFactor<gtsam::Point2> f(1, 2, gtsam::Point2(), gtsam::noiseModel::Unit::Create(2));
             }
-        ]]}))
+        ]]}, {configs = {languages = "c++17"}}))
     end)
 package_end()
