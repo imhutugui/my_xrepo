@@ -102,10 +102,18 @@ package("gtsam")
         -- CMAKE_PREFIX_PATH (from deps), CMAKE_POSITION_INDEPENDENT_CODE, etc.
         -- So we don't need to set them manually.
 
-        -- On Windows, we also add /FORCE:MULTIPLE to the linker to handle LNK2005
-        -- duplicate symbol errors that occur when building gtsam_unstable.dll alongside
-        -- gtsam.dll due to MSVC exporting std::map<> template instantiations.
         if package:is_plat("windows") then
+            -- GTSAM 4.3 sources contain UTF-8 math symbols (e.g. U+2297 in MatrixLieGroup.h).
+            -- MSVC on a Chinese code page (936) raises C4819 for those files, and GTSAM sets
+            -- GTSAM_BUILD_WITH_WERROR=ON by default on MSVC, turning C4819 into a hard error.
+            -- Tell MSVC to read sources as UTF-8 instead of disabling /WX. *_FLAGS_INIT is used
+            -- so CMake's platform defaults (/DWIN32 /D_WINDOWS /GR /EHsc) are preserved.
+            table.insert(configs, "-DCMAKE_CXX_FLAGS_INIT=/utf-8")
+
+            -- GTSAM's own CMakeLists.txt already sets /FORCE:MULTIPLE on MSVC (4.3.0:74-78)
+            -- and overwrites CMAKE_*_LINKER_FLAGS, so these are only a fallback for 4.2.x.
+            -- They handle the LNK2005 duplicate std::map<> instantiations seen when building
+            -- gtsam_unstable.dll alongside gtsam.dll.
             table.insert(configs, "-DCMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE")
             table.insert(configs, "-DCMAKE_SHARED_LINKER_FLAGS=/FORCE:MULTIPLE")
             table.insert(configs, "-DCMAKE_MODULE_LINKER_FLAGS=/FORCE:MULTIPLE")
